@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import asyncio
 import requests
 from typing import Dict, Any, Optional
 from app.safety import safety_engine, RiskLevel
@@ -38,13 +39,13 @@ class IntentParser:
             return {"intent": "search_files", "args": {"query": m.group(1).strip()}}
 
         # Create folder
-        m = re.search(r"create (?:a )?new folder (?:called|named )?(.+)", raw_text, re.IGNORECASE) or re.search(r"make directory (.+)", raw_text, re.IGNORECASE)
+        m = re.search(r"create (?:a )?new folder (?:(?:called|named)\s+)?(.+)", raw_text, re.IGNORECASE) or re.search(r"make directory (.+)", raw_text, re.IGNORECASE)
         if m:
             folder_name = m.group(1).strip().strip("'\"")
             return {"intent": "create_folder", "args": {"folder_name": folder_name}}
 
         # Create file
-        m = re.search(r"create (?:a )?file (?:called|named )?([^\s]+)", raw_text, re.IGNORECASE)
+        m = re.search(r"create (?:a )?file (?:(?:called|named)\s+)?([^\s]+)", raw_text, re.IGNORECASE)
         if m:
             file_name = m.group(1).strip().strip("'\"")
             return {"intent": "create_file", "args": {"filepath": file_name, "content": ""}}
@@ -114,7 +115,14 @@ async def parse_and_execute(command_text: str, context: Optional[dict] = None) -
     intent = parsed["intent"]
     args = parsed["args"]
 
-    risk_level = safety_engine.classify_action(intent, args)
+    if intent == "create_file":
+        filepath = args.get("filepath", "new_file.txt")
+        if os.path.exists(os.path.abspath(filepath)):
+            risk_level = RiskLevel.HIGH
+        else:
+            risk_level = safety_engine.classify_action(intent, args)
+    else:
+        risk_level = safety_engine.classify_action(intent, args)
 
     # Router logic
     if risk_level == RiskLevel.HIGH:
@@ -133,26 +141,55 @@ async def parse_and_execute(command_text: str, context: Optional[dict] = None) -
                 "prompt": f"JARVIS wants to delete '{target}'. Do you want me to continue?",
                 "spoken_response": f"This will permanently delete {target}. Do you want me to continue?"
             }
+        elif intent == "create_file":
+            filepath = args.get("filepath", "new_file.txt")
+            desc = f"overwrite file '{filepath}'"
+            confirm_args = dict(args)
+            confirm_args["overwrite"] = True
+            func = filesystem.create_file
+            token = safety_engine.register_pending_action(desc, func, confirm_args)
+            return {
+                "success": False,
+                "requires_confirmation": True,
+                "confirmation_token": token,
+                "intent": intent,
+                "risk_level": risk_level,
+                "prompt": f"File '{filepath}' already exists. Do you want to overwrite it?",
+                "spoken_response": f"File {filepath} already exists. Do you want me to overwrite it?"
+            }
+        else:
+            return {
+                "success": False,
+                "intent": intent,
+                "risk_level": risk_level,
+                "error": f"High-risk action '{intent}' is not supported or missing confirmation handler.",
+                "spoken_response": f"Execution of high-risk action {intent} was denied."
+            }
 
-    # Execute Low and Medium Risk directly
+    # Execute Low and Medium Risk directly via worker-thread offload
     if intent == "get_system_status":
-        res = system.get_system_status_summary()
+        res = await asyncio.to_thread(system.get_system_status_summary)
     elif intent == "get_top_cpu":
-        res = system.get_top_cpu_app()
+        res = await asyncio.to_thread(system.get_top_cpu_app)
     elif intent == "list_files":
-        res = filesystem.list_files(args.get("directory", "."))
+        res = await asyncio.to_thread(filesystem.list_files, args.get("directory", "."))
     elif intent == "search_files":
-        res = filesystem.search_files(args.get("query", ""))
+        res = await asyncio.to_thread(filesystem.search_files, args.get("query", ""))
     elif intent == "create_folder":
-        res = filesystem.create_folder(args.get("folder_name", "New Folder"))
+        res = await asyncio.to_thread(filesystem.create_folder, args.get("folder_name", "New Folder"))
     elif intent == "create_file":
-        res = filesystem.create_file(args.get("filepath", "new_file.txt"), args.get("content", ""))
+        res = await asyncio.to_thread(
+            filesystem.create_file,
+            args.get("filepath", "new_file.txt"),
+            args.get("content", ""),
+            args.get("overwrite", False)
+        )
     elif intent == "read_file":
-        res = filesystem.read_file(args.get("filepath", ""))
+        res = await asyncio.to_thread(filesystem.read_file, args.get("filepath", ""))
     elif intent == "open_url":
-        res = browser.open_url(args.get("url", ""))
+        res = await asyncio.to_thread(browser.open_url, args.get("url", ""))
     elif intent == "search_web":
-        res = browser.search_web(args.get("query", ""))
+        res = await asyncio.to_thread(browser.search_web, args.get("query", ""))
     elif intent == "open_application":
         app_name = args.get("target", "Application")
         res = {
@@ -161,19 +198,19 @@ async def parse_and_execute(command_text: str, context: Optional[dict] = None) -
             "spoken_response": f"Opening {app_name}."
         }
     elif intent == "search_code":
-        res = developer.search_code(args.get("query", ""))
+        res = await asyncio.to_thread(developer.search_code, args.get("query", ""))
     elif intent == "explain_error":
-        res = developer.explain_error(args.get("error_message", ""))
+        res = await asyncio.to_thread(developer.explain_error, args.get("error_message", ""))
     elif intent == "start_dev_server":
-        res = developer.start_dev_server(args.get("command", "npm start"))
+        res = await asyncio.to_thread(developer.start_dev_server, args.get("command", "npm start"))
     elif intent == "stop_dev_server":
-        res = developer.stop_dev_server()
+        res = await asyncio.to_thread(developer.stop_dev_server, args.get("command"))
     elif intent == "git_status":
-        res = git.get_git_status()
+        res = await asyncio.to_thread(git.get_git_status)
     elif intent == "git_log":
-        res = git.get_git_log()
+        res = await asyncio.to_thread(git.get_git_log)
     elif intent == "set_reminder":
-        res = productivity.set_reminder(args.get("text", ""))
+        res = await asyncio.to_thread(productivity.set_reminder, args.get("text", ""))
     else:
         # General query / response
         spoken = f"I processed your command: '{command_text}'"

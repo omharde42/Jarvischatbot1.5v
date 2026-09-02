@@ -1,10 +1,14 @@
 import time
 import os
+import asyncio
+import logging
 from typing import Dict, Any, Optional
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
+
+logger = logging.getLogger("server")
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -46,11 +50,12 @@ async def execute_command(req: CommandRequest):
         result = await parse_and_execute(req.command, req.context)
         return JSONResponse(content=result)
     except Exception as e:
+        logger.exception("Error executing command: %s", e)
         return JSONResponse(
             status_code=500,
             content={
                 "success": False,
-                "error": str(e),
+                "error": "An internal error occurred.",
                 "spoken_response": "An internal error occurred while executing the command."
             }
         )
@@ -58,9 +63,9 @@ async def execute_command(req: CommandRequest):
 @app.post("/api/confirm")
 async def confirm_action(req: ConfirmationRequest):
     from app.safety import safety_engine
-    result = safety_engine.process_confirmation(req.confirmation_token, req.confirmed)
+    result = await asyncio.to_thread(safety_engine.process_confirmation, req.confirmation_token, req.confirmed)
     return JSONResponse(content=result)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("server:app", host="127.0.0.1", port=8000, reload=True)

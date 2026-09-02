@@ -2,7 +2,7 @@
 
 An upgraded, powerful Voice + System-Control AI Assistant built with FastAPI, Web Speech API, and a modular Skills Engine.
 
-![JARVIS Dashboard](static/index.html)
+[JARVIS Dashboard](static/index.html)
 
 ---
 

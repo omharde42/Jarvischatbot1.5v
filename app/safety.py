@@ -1,4 +1,5 @@
 import uuid
+import secrets
 import time
 from enum import Enum
 from typing import Dict, Any, Callable, Optional, Tuple
@@ -31,7 +32,7 @@ class SafetyEngine:
 
     def register_pending_action(self, description: str, func: Callable, kwargs: dict) -> str:
         self.cleanup_expired()
-        token = str(uuid.uuid4())[:8]
+        token = secrets.token_urlsafe(16)
         self.pending_actions[token] = PendingAction(token, description, func, kwargs)
         return token
 
@@ -72,21 +73,12 @@ class SafetyEngine:
     @staticmethod
     def classify_action(intent: str, args: dict) -> RiskLevel:
         high_risk_intents = [
-            "delete_file",
-            "delete_folder",
-            "format_disk",
-            "modify_security",
-            "run_destructive_command",
-            "git_hard_reset"
+            "delete_file"
         ]
 
         medium_risk_intents = [
-            "install_package",
-            "run_script",
-            "modify_config",
-            "git_commit",
-            "git_push",
-            "stop_server"
+            "start_dev_server",
+            "stop_dev_server"
         ]
 
         if intent in high_risk_intents:

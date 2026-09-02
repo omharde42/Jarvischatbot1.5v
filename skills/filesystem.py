@@ -63,17 +63,24 @@ def create_folder(folder_name: str) -> Dict[str, Any]:
     except Exception as e:
         return {"success": False, "error": str(e), "spoken_response": "Failed to create folder."}
 
-def create_file(filepath: str, content: str = "") -> Dict[str, Any]:
+def create_file(filepath: str, content: str = "", overwrite: bool = False) -> Dict[str, Any]:
     try:
         path = os.path.abspath(filepath)
+        if os.path.exists(path) and not overwrite:
+            return {
+                "success": False,
+                "error": f"File '{filepath}' already exists. Overwrite confirmation required.",
+                "spoken_response": f"File {os.path.basename(path)} already exists."
+            }
         os.makedirs(os.path.dirname(path), exist_ok=True)
         with open(path, "w", encoding="utf-8") as f:
             f.write(content)
         name = os.path.basename(path)
+        action_str = "Overwrote" if overwrite else "Created"
         return {
             "success": True,
             "filepath": path,
-            "spoken_response": f"Created file {name}."
+            "spoken_response": f"{action_str} file {name}."
         }
     except Exception as e:
         return {"success": False, "error": str(e), "spoken_response": "Failed to create file."}

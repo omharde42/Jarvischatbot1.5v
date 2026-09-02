@@ -18,7 +18,8 @@ def test_health_and_telemetry():
 
 def test_safety_classification():
     assert safety_engine.classify_action("list_files", {}) == RiskLevel.LOW
-    assert safety_engine.classify_action("git_commit", {}) == RiskLevel.MEDIUM
+    assert safety_engine.classify_action("start_dev_server", {}) == RiskLevel.MEDIUM
+    assert safety_engine.classify_action("stop_dev_server", {}) == RiskLevel.MEDIUM
     assert safety_engine.classify_action("delete_file", {}) == RiskLevel.HIGH
 
 def test_intent_parser():
@@ -31,6 +32,10 @@ def test_intent_parser():
     parsed_create = IntentParser.parse("Create a new folder called Projects")
     assert parsed_create["intent"] == "create_folder"
     assert parsed_create["args"]["folder_name"] == "Projects"
+
+    parsed_create_file = IntentParser.parse("create a file called notes.txt")
+    assert parsed_create_file["intent"] == "create_file"
+    assert parsed_create_file["args"]["filepath"] == "notes.txt"
 
     parsed_delete = IntentParser.parse("Delete file test.txt")
     assert parsed_delete["intent"] == "delete_file"
@@ -60,7 +65,36 @@ async def test_high_risk_confirmation_flow(tmp_path):
     res = await parse_and_execute(f"Delete file {test_file}")
     assert res["requires_confirmation"] is True
     token = res["confirmation_token"]
+    assert len(token) >= 16
 
     confirm_res = safety_engine.process_confirmation(token, confirmed=True)
     assert confirm_res["success"] is True
     assert not test_file.exists()
+
+@pytest.mark.asyncio
+async def test_create_file_overwrite_confirmation_flow(tmp_path):
+    existing_file = tmp_path / "existing.txt"
+    filesystem.create_file(str(existing_file), "Original Content")
+
+    res = await parse_and_execute(f"create a file called {existing_file}")
+    assert res["requires_confirmation"] is True
+    token = res["confirmation_token"]
+
+    confirm_res = safety_engine.process_confirmation(token, confirmed=True)
+    assert confirm_res["success"] is True
+    assert existing_file.exists()
+
+def test_search_code_30_limit(tmp_path):
+    for i in range(40):
+        (tmp_path / f"file_{i}.py").write_text("match_keyword line content\n")
+
+    res = developer.search_code("match_keyword", root_dir=str(tmp_path))
+    assert res["success"] is True
+    assert len(res["matches"]) == 30
+
+def test_dev_server_control():
+    start_res = developer.start_dev_server("python3 -m http.server 9999")
+    assert start_res["success"] is True
+
+    stop_res = developer.stop_dev_server("python3 -m http.server 9999")
+    assert stop_res["success"] is True

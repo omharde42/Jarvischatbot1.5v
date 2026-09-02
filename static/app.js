@@ -77,7 +77,19 @@ function logActivity(message) {
   const timeStr = new Date().toLocaleTimeString();
   const entry = document.createElement('div');
   entry.className = 'log-entry';
-  entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
+
+  const timeSpan = document.createElement('span');
+  timeSpan.className = 'log-time';
+  timeSpan.textContent = `[${timeStr}]`;
+
+  const msgSpan = document.createElement('span');
+  msgSpan.className = 'log-msg';
+  msgSpan.textContent = message;
+
+  entry.appendChild(timeSpan);
+  entry.appendChild(document.createTextNode(' '));
+  entry.appendChild(msgSpan);
+
   activityLog.appendChild(entry);
   activityLog.scrollTop = activityLog.scrollHeight;
 }
@@ -85,7 +97,18 @@ function logActivity(message) {
 function addChatMessage(speaker, text) {
   const bubble = document.createElement('div');
   bubble.className = `chat-bubble ${speaker.toLowerCase()}`;
-  bubble.innerHTML = `<div class="speaker">${speaker.toUpperCase()}</div><div class="text">${text}</div>`;
+
+  const speakerDiv = document.createElement('div');
+  speakerDiv.className = 'speaker';
+  speakerDiv.textContent = speaker.toUpperCase();
+
+  const textDiv = document.createElement('div');
+  textDiv.className = 'text';
+  textDiv.textContent = text;
+
+  bubble.appendChild(speakerDiv);
+  bubble.appendChild(textDiv);
+
   conversationContainer.appendChild(bubble);
   conversationContainer.scrollTop = conversationContainer.scrollHeight;
 }
