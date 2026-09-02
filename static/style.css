@@ -413,6 +413,6 @@ body {
 }
 
 .btn-confirm {
-  background-color: var(--accent-red);
+  background-color: #c4123d;
   color: #fff;
 }
