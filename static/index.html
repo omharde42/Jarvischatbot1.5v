@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JARVIS AI — System Assistant</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=Roboto+Mono:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header / Navbar -->
+    <header class="top-bar">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">JARVIS <small>v2.0</small></span>
+      </div>
+      <div class="status-badge" id="jarvisStateBadge">
+        <span class="state-indicator idle"></span>
+        <span class="state-label" id="stateLabel">IDLE</span>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Left Panel: Voice Control & Chat -->
+      <section class="panel voice-chat-panel">
+        <div class="panel-header">
+          <h2>Voice & Command Interface</h2>
+        </div>
+
+        <!-- Voice Visualizer & Mic Button -->
+        <div class="voice-center">
+          <canvas id="waveformCanvas" width="400" height="80"></canvas>
+          <button id="micBtn" class="mic-button" title="Toggle Voice Control">
+            <span class="mic-icon">🎙️</span>
+          </button>
+          <div class="voice-hint" id="voiceHint">Click microphone or say "Jarvis" to start</div>
+        </div>
+
+        <!-- Command Input Form -->
+        <form id="commandForm" class="command-form">
+          <input type="text" id="commandInput" placeholder="Type a command (e.g., 'Open Chrome', 'What is using the most CPU?')..." autocomplete="off">
+          <button type="submit" id="sendBtn">Send</button>
+        </form>
+
+        <!-- Conversation History -->
+        <div class="conversation-container" id="conversationContainer">
+          <div class="chat-bubble jarvis">
+            <div class="speaker">JARVIS</div>
+            <div class="text">Systems online and fully operational. How may I assist you today?</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Right Panel: Telemetry & Activity Log -->
+      <section class="panel dashboard-panel">
+        <div class="panel-header">
+          <h2>System Telemetry</h2>
+        </div>
+
+        <!-- Telemetry Metrics Grid -->
+        <div class="telemetry-grid">
+          <div class="telemetry-card">
+            <div class="card-title">CPU Usage</div>
+            <div class="card-value" id="cpuValue">--%</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="cpuBar" style="width: 0%"></div></div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="card-title">RAM Usage</div>
+            <div class="card-value" id="ramValue">--%</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="ramBar" style="width: 0%"></div></div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="card-title">Disk Storage</div>
+            <div class="card-value" id="diskValue">--%</div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" id="diskBar" style="width: 0%"></div></div>
+          </div>
+
+          <div class="telemetry-card">
+            <div class="card-title">System Uptime</div>
+            <div class="card-value uptime" id="uptimeValue">0h 0m</div>
+          </div>
+        </div>
+
+        <!-- Top Processes -->
+        <div class="top-processes-container">
+          <h3>Top CPU Process</h3>
+          <div class="top-proc-info" id="topProcInfo">Loading process data...</div>
+        </div>
+
+        <!-- Activity Log -->
+        <div class="panel-header" style="margin-top: 20px;">
+          <h2>Activity Log</h2>
+        </div>
+        <div class="activity-log" id="activityLog">
+          <div class="log-entry">
+            <span class="log-time">[00:00:00]</span>
+            <span class="log-msg">JARVIS Core Engine Initialized.</span>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal-overlay hidden">
+    <div class="modal-content">
+      <div class="modal-header">⚠️ Confirmation Required</div>
+      <div class="modal-body" id="modalPromptText">JARVIS wants to execute a high-risk operation. Do you want to continue?</div>
+      <div class="modal-actions">
+        <button id="cancelModalBtn" class="btn btn-cancel">Cancel</button>
+        <button id="confirmModalBtn" class="btn btn-confirm">Confirm Action</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

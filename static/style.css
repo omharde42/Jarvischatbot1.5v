@@ -1,0 +1,418 @@
+:root {
+  --bg-primary: #0a0e17;
+  --bg-secondary: #121826;
+  --bg-card: #1a2235;
+  --accent-cyan: #00f0ff;
+  --accent-blue: #0072ff;
+  --accent-red: #ff3366;
+  --accent-green: #00ff88;
+  --accent-amber: #ffb700;
+  --text-main: #e2e8f0;
+  --text-dim: #94a3b8;
+  --border-color: #2a364f;
+  --font-title: 'Orbitron', sans-serif;
+  --font-mono: 'Roboto Mono', monospace;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-primary);
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Top Navigation Bar */
+.top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 30px;
+  background-color: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--accent-cyan);
+  letter-spacing: 2px;
+}
+
+.logo small {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  font-family: var(--font-title);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
+}
+
+.state-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--accent-green);
+  box-shadow: 0 0 10px var(--accent-green);
+}
+
+.state-indicator.listening {
+  background-color: var(--accent-cyan);
+  box-shadow: 0 0 12px var(--accent-cyan);
+  animation: pulse 1s infinite alternate;
+}
+
+.state-indicator.thinking {
+  background-color: var(--accent-amber);
+  box-shadow: 0 0 12px var(--accent-amber);
+  animation: pulse 0.5s infinite alternate;
+}
+
+.state-indicator.executing {
+  background-color: var(--accent-blue);
+  box-shadow: 0 0 12px var(--accent-blue);
+}
+
+.state-indicator.speaking {
+  background-color: var(--accent-green);
+  box-shadow: 0 0 15px var(--accent-green);
+  animation: pulse 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.3; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1.2); }
+}
+
+/* Main Grid */
+.main-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 20px;
+  flex: 1;
+  overflow: hidden;
+}
+
+.panel {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel-header h2 {
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+}
+
+/* Voice & Mic Control */
+.voice-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+#waveformCanvas {
+  width: 100%;
+  height: 70px;
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  margin-bottom: 15px;
+}
+
+.mic-button {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-cyan);
+  background-color: var(--bg-card);
+  color: var(--accent-cyan);
+  font-size: 1.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.2);
+}
+
+.mic-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(0, 240, 255, 0.5);
+}
+
+.mic-button.active {
+  background-color: var(--accent-cyan);
+  color: var(--bg-primary);
+  box-shadow: 0 0 30px var(--accent-cyan);
+}
+
+.voice-hint {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 10px;
+}
+
+/* Command Form */
+.command-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.command-form input {
+  flex: 1;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--text-main);
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.command-form input:focus {
+  border-color: var(--accent-cyan);
+}
+
+.command-form button {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-cyan));
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-family: var(--font-title);
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.command-form button:hover {
+  opacity: 0.9;
+}
+
+/* Conversation Box */
+.conversation-container {
+  flex: 1;
+  overflow-y: auto;
+  background-color: rgba(0,0,0,0.15);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chat-bubble {
+  padding: 10px 14px;
+  border-radius: 8px;
+  max-width: 85%;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.chat-bubble.jarvis {
+  align-self: flex-start;
+  background-color: var(--bg-card);
+  border-left: 3px solid var(--accent-cyan);
+}
+
+.chat-bubble.user {
+  align-self: flex-end;
+  background-color: var(--accent-blue);
+  color: #fff;
+  border-right: 3px solid var(--accent-cyan);
+}
+
+.chat-bubble .speaker {
+  font-size: 0.7rem;
+  font-family: var(--font-title);
+  color: var(--text-dim);
+  margin-bottom: 4px;
+}
+
+/* Dashboard Panel (Telemetry) */
+.telemetry-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 15px;
+}
+
+.telemetry-card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.card-title {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+.card-value {
+  font-family: var(--font-title);
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--accent-cyan);
+  margin: 6px 0;
+}
+
+.card-value.uptime {
+  font-size: 1rem;
+}
+
+.progress-bar-bg {
+  width: 100%;
+  height: 6px;
+  background-color: var(--bg-primary);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background-color: var(--accent-cyan);
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.top-processes-container {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.top-processes-container h3 {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+}
+
+.top-proc-info {
+  font-size: 0.8rem;
+  color: var(--text-main);
+}
+
+/* Activity Log */
+.activity-log {
+  flex: 1;
+  overflow-y: auto;
+  background-color: rgba(0,0,0,0.2);
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.log-entry {
+  display: flex;
+  gap: 10px;
+  color: var(--text-dim);
+}
+
+.log-time {
+  color: var(--accent-cyan);
+}
+
+/* Confirmation Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--accent-amber);
+  border-radius: 12px;
+  padding: 25px;
+  width: 420px;
+  box-shadow: 0 0 30px rgba(255, 183, 0, 0.2);
+}
+
+.modal-header {
+  font-family: var(--font-title);
+  color: var(--accent-amber);
+  font-size: 1.1rem;
+  margin-bottom: 12px;
+}
+
+.modal-body {
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-family: var(--font-title);
+  font-size: 0.8rem;
+  cursor: pointer;
+  border: none;
+}
+
+.btn-cancel {
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+}
+
+.btn-confirm {
+  background-color: var(--accent-red);
+  color: #fff;
+}
