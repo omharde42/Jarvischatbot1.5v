@@ -1,6 +1,7 @@
 import os
+import shlex
 import subprocess
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 active_dev_servers = {}
 
@@ -27,6 +28,10 @@ def search_code(query: str, root_dir: str = ".") -> Dict[str, Any]:
                                         break
                     except Exception:
                         pass
+                if len(matches) >= 30:
+                    break
+            if len(matches) >= 30:
+                break
         spoken = f"Found {len(matches)} code occurrences of {query}." if matches else f"No occurrences of {query} found in codebase."
         return {
             "success": True,
@@ -63,7 +68,11 @@ def explain_error(error_message: str) -> Dict[str, Any]:
 
 def start_dev_server(command: str = "npm start") -> Dict[str, Any]:
     try:
-        proc = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        proc = subprocess.Popen(
+            shlex.split(command),
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
         active_dev_servers[command] = proc.pid
         return {
             "success": True,
@@ -74,13 +83,25 @@ def start_dev_server(command: str = "npm start") -> Dict[str, Any]:
     except Exception as e:
         return {"success": False, "error": str(e), "spoken_response": "Failed to start development server."}
 
-def stop_dev_server(command: str = None) -> Dict[str, Any]:
+def stop_dev_server(command: Optional[str] = None) -> Dict[str, Any]:
     try:
         if not active_dev_servers:
             return {"success": False, "message": "No active development servers recorded.", "spoken_response": "No active servers found to stop."}
 
+        targets = (
+            [(command, active_dev_servers[command])]
+            if command in active_dev_servers
+            else list(active_dev_servers.items()) if command is None else []
+        )
+        if not targets:
+            return {
+                "success": False,
+                "message": f"No active development server recorded for {command}.",
+                "spoken_response": "No matching active server found to stop.",
+            }
+
         stopped = []
-        for cmd, pid in list(active_dev_servers.items()):
+        for cmd, pid in targets:
             try:
                 os.kill(pid, 9)
                 stopped.append(cmd)

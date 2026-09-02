@@ -15,12 +15,26 @@ def get_telemetry() -> dict:
     minutes, seconds = divmod(remainder, 60)
     uptime_str = f"{hours}h {minutes}m {seconds}s"
 
+    sampled_processes = []
+    for proc in psutil.process_iter(['pid', 'name']):
+        try:
+            proc.cpu_percent(interval=None)
+            sampled_processes.append(proc)
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
+
+    time.sleep(0.1)
     processes = []
-    try:
-        for proc in psutil.process_iter(['pid', 'name', 'cpu_percent', 'memory_percent']):
-            processes.append(proc.info)
-    except Exception:
-        pass
+    for proc in sampled_processes:
+        try:
+            processes.append({
+                "pid": proc.info["pid"],
+                "name": proc.info["name"],
+                "cpu_percent": proc.cpu_percent(interval=None),
+                "memory_percent": proc.memory_percent(),
+            })
+        except (psutil.NoSuchProcess, psutil.AccessDenied):
+            continue
 
     # Sort processes by CPU percentage
     top_cpu_processes = sorted(processes, key=lambda p: p.get('cpu_percent') or 0, reverse=True)[:5]
