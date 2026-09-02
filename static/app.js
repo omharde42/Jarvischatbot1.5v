@@ -77,7 +77,13 @@ function logActivity(message) {
   const timeStr = new Date().toLocaleTimeString();
   const entry = document.createElement('div');
   entry.className = 'log-entry';
-  entry.innerHTML = `<span class="log-time">[${timeStr}]</span> <span class="log-msg">${message}</span>`;
+  const timeElement = document.createElement('span');
+  timeElement.className = 'log-time';
+  timeElement.textContent = `[${timeStr}]`;
+  const messageElement = document.createElement('span');
+  messageElement.className = 'log-msg';
+  messageElement.textContent = message;
+  entry.append(timeElement, ' ', messageElement);
   activityLog.appendChild(entry);
   activityLog.scrollTop = activityLog.scrollHeight;
 }
@@ -85,7 +91,13 @@ function logActivity(message) {
 function addChatMessage(speaker, text) {
   const bubble = document.createElement('div');
   bubble.className = `chat-bubble ${speaker.toLowerCase()}`;
-  bubble.innerHTML = `<div class="speaker">${speaker.toUpperCase()}</div><div class="text">${text}</div>`;
+  const speakerElement = document.createElement('div');
+  speakerElement.className = 'speaker';
+  speakerElement.textContent = speaker.toUpperCase();
+  const textElement = document.createElement('div');
+  textElement.className = 'text';
+  textElement.textContent = text;
+  bubble.append(speakerElement, textElement);
   conversationContainer.appendChild(bubble);
   conversationContainer.scrollTop = conversationContainer.scrollHeight;
 }
