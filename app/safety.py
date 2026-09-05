@@ -73,7 +73,8 @@ class SafetyEngine:
     @staticmethod
     def classify_action(intent: str, args: dict) -> RiskLevel:
         high_risk_intents = [
-            "delete_file"
+            "delete_file",
+            "system_power"
         ]
 
         medium_risk_intents = [
