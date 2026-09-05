@@ -1,4 +1,4 @@
-# JARVIS AI Assistant v2.0
+# JARVIS AI Assistant v1.5
 
 An upgraded, powerful Voice + System-Control AI Assistant built with FastAPI, Web Speech API, and a modular Skills Engine.
 
@@ -8,7 +8,7 @@ An upgraded, powerful Voice + System-Control AI Assistant built with FastAPI, We
 
 ## ⚡ Overview & Features
 
-JARVIS v2.0 transforms your desktop environment into a voice-enabled command center. It listens to natural language speech/text commands, determines intent, enforces safety permissions, and executes system operations with concise voice and visual feedback.
+JARVIS v1.5  transforms your desktop environment into a voice-enabled command center. It listens to natural language speech/text commands, determines intent, enforces safety permissions, and executes system operations with concise voice and visual feedback.
 
 ### Key Capabilities
 
